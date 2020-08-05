@@ -1,0 +1,34 @@
+type Bike {
+    id: ID!
+    name: String!
+    teams: [Team!] @hasMany(relation:"teams" type:"paginator")
+}
+
+extend type Query{
+    # bike
+    # Buscar por nombre
+    bikes: [Bike!]! @paginate(defaultCount: 10)
+    bike(
+        id: ID @eq
+        name: String @eq
+    ): Bike @find
+}
+
+extend type Mutation{
+    createBike(
+        name: String! @rules(apply: ["unique:bikes,name", "max:100"])
+    ): Bike @create
+
+    updateBike(
+        id: ID!
+        name: String! @rules(apply: ["unique:bikes,name", "max:100"])
+    ): Bike @update
+
+    deleteBike(
+        id: ID!
+    ): Bike @delete
+}
+
+input CreateBikeInput{
+    name: String!
+}

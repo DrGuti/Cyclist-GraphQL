@@ -1,0 +1,43 @@
+type TeamClass {
+    id: ID!
+    name: String!
+    abbrevation: String!
+    level: Int!
+    teams(name: String @where(operator:"like")): [Team!]! @hasMany(relation:"teams")
+}
+
+extend type Query{
+    # team class 
+    # Por nivel -> Lista equipos -> Pais, Nombre, nº ciclistas 
+    # Buscar por nivel o niveles
+    # Buscar por nombre de equipo
+    teamClasses(
+        level: Int @eq
+        levels: Int @where(key:"level" operator: ">=")
+        orderBy: [OrderByClause] @orderBy
+    ): [TeamClass!]! @paginate(defaultCount: 10) 
+    # Buscar por ID de clase
+    teamClass(
+        id: ID @eq
+    ): TeamClass @find
+}
+
+extend type Mutation{
+    # crear Clase todos campos required
+    createTeamClass(
+        name:String! @rules(apply: ["unique:team_classes,name"]), 
+        level:Int! @rules(apply: ["unique:team_classes,level"]),
+        abbrevation:String! @rules(apply: ["string", "max:4"])
+    ): TeamClass @create
+
+    updateTeamClass(
+        id: ID!
+        name:String @rules(apply: ["unique:team_classes,name"]), 
+        level:Int @rules(apply: ["unique:team_classes,level"]),
+        abbrevation:String @rules(apply: ["string", "max:4"])
+    ): TeamClass @update
+
+    deleteTeamClass(
+        id: ID!
+    ): TeamClass @delete
+}

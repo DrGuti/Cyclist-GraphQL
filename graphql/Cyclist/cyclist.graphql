@@ -1,0 +1,63 @@
+type Cyclist {
+    id: ID!
+    first_name: String!
+    last_name: String!
+    country: String!
+    city: String
+    birth_day: Date
+    weight: Int
+    height: Float
+    url: String
+    team: Team @BelongsTo
+    age: Age @rename(attribute: "birth_day")
+}
+
+extend type Query{
+    cyclists(
+        first_name: String @eq
+        last_name: String @eq
+        country: String @eq
+        orderBy: [OrderByClause] @orderBy
+    ): [Cyclist!]! @paginate(defaultCount: 10)
+    cyclist(
+        id: ID @eq
+        first_name: String @where(operator:"like")
+        last_name: String @where(operator:"like")
+        country: String @eq
+    ): Cyclist @find
+}
+
+extend type Mutation{
+    createCyclist(input: CreateCyclistInput! @spread): Cyclist @create
+    updateCyclist(input: UpdateCyclistInput! @spread): Cyclist @update
+    deleteCyclist(id: ID!): Cyclist @delete
+}
+
+input CreateCyclistInput{
+    first_name: String! @rules(apply: ["unique:cyclists,first_name", "max:50"])
+    last_name: String! @rules(apply: ["unique:cyclists,last_name", "max:50"])
+    country: String!
+    city: String  @rules(apply: ["max:50"])
+    birth_day: Date @rules(apply: ["date"])
+    weight: Int
+    height: Float
+    url: String @rules(apply: ["url"])
+    team: CreateTeamBelongs
+}
+
+input UpdateCyclistInput{
+    id: ID!
+    first_name: String @rules(apply: ["unique:cyclists,first_name", "max:50"])
+    last_name: String @rules(apply: ["unique:cyclists,last_name", "max:50"])
+    country: String
+    city: String  @rules(apply: ["max:50"])
+    birth_day: Date @rules(apply: ["date"])
+    weight: Int
+    height: Float
+    url: String @rules(apply: ["url"])
+    team: CreateTeamBelongs
+}
+
+input CreateTeamBelongs{
+    connect: ID
+}

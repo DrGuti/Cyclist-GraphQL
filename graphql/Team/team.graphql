@@ -1,0 +1,67 @@
+type Team {
+    id: ID!
+    name: String!
+    abbrevation: String!
+    country: String!
+    url: String
+    class: TeamClass! @BelongsTo(relation: "class")
+    bike: Bike @BelongsTo
+    cyclists(orderBy: [OrderByClause] @orderBy): [Cyclist!] @hasMany(relation:"cyclists")
+    riders: Int @count(relation:"cyclists")
+}
+
+extend type Query {
+    # team
+    # Buscar por ID por Nombre por Pais
+    # Ciclistas ordenados sin paginar
+    teams(
+        id: ID @eq
+        name: String @where(operator:"like")
+        country: String @where(operator:"like")
+    ): [Team!]! @paginate(defaultCount: 10)
+    team(
+        id: ID @eq
+        name: String @eq
+    ): Team @find
+}
+
+extend type Mutation{
+    createTeam(input: CreateTeamInput! @spread): Team @create
+    updateTeam(input: UpdateTeamInput! @spread): Team @upsert
+    deleteTeam(id: ID!): Team @delete
+}
+
+input CreateTeamInput{
+    name: String! @rules(apply: ["unique:teams,name", "max:100"])
+    abbrevation: String! @rules(apply: ["unique:teams,abbrevation", "max:3"])
+    country: String!
+    url: String @rules(apply: ["url"])
+    class: CreateTeamClassBelongs!
+    bike: CreateBikeBelongs
+    cyclists: CreateCyclistHasMany
+}
+
+input UpdateTeamInput{
+    id: ID!
+    name: String @rules(apply: ["unique:teams,name", "max:100"])
+    abbrevation: String @rules(apply: ["unique:teams,abbrevation", "max:3"])
+    country: String
+    url: String @rules(apply: ["url"])
+    class: CreateTeamClassBelongs
+    bike: CreateBikeBelongs
+    cyclists: CreateCyclistHasMany
+}
+
+input CreateTeamClassBelongs{
+    connect: ID
+}
+
+input CreateBikeBelongs{
+    connect: ID
+    create: CreateBikeInput
+}
+
+input CreateCyclistHasMany{
+    update: [UpdateCyclistInput!]
+    create: [CreateCyclistInput!]
+}
